@@ -21,18 +21,53 @@ import Link from "next/link"
 import Image from "next/image"
 import { getProductById } from "@/lib/data"
 import { Header } from "@/components/header"
+import { useEffect, useState } from "react"
 
 interface ComparePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function ComparePage({ params }: ComparePageProps) {
-  const product = getProductById(params.id)
+  const [productId, setProductId] = useState<string | null>(null)
+  const [product, setProduct] = useState<any>(null)
 
-  if (!product) {
-    notFound()
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setProductId(resolvedParams.id)
+      const foundProduct = getProductById(resolvedParams.id)
+      if (!foundProduct) {
+        notFound()
+      }
+      setProduct(foundProduct)
+    }
+    
+    getParams()
+  }, [params])
+
+  if (!productId || !product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+              <div className="h-64 bg-gray-200 rounded mb-8"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="h-96 bg-gray-200 rounded"></div>
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="h-64 bg-gray-200 rounded"></div>
+                  <div className="h-64 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const similarityColor =
@@ -164,7 +199,7 @@ export default function ComparePage({ params }: ComparePageProps) {
                 <CardContent>
                   {product.features.overlapping.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {product.features.overlapping.map((feature) => (
+                      {product.features.overlapping.map((feature: string) => (
                         <div
                           key={feature}
                           className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
@@ -199,7 +234,7 @@ export default function ComparePage({ params }: ComparePageProps) {
                 <CardContent>
                   {product.features.missing.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {product.features.missing.map((feature) => (
+                      {product.features.missing.map((feature: string) => (
                         <div
                           key={feature}
                           className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
