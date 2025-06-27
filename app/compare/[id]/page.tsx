@@ -151,10 +151,10 @@ export default function ComparePage({ params }: ComparePageProps) {
                     View on GitHub
                     <ExternalLink className="h-4 w-4 ml-2" />
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  {/* <Button variant="outline" className="w-full">
                     <Zap className="h-4 w-4 mr-2" />
                     Add to Watchlist
-                  </Button>
+                  </Button> */}
                 </div>
               </CardContent>
             </Card>
