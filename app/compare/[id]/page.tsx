@@ -16,12 +16,13 @@ import {
   TrendingUp,
   Zap,
   Target,
+  Code,
+  FileText,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { getProductById } from "@/lib/data"
 import { Header } from "@/components/header"
-import { useEffect, useState } from "react"
+import { useProductContext } from '@/components/context/ProductContext'
 
 interface ComparePageProps {
   params: Promise<{
@@ -30,45 +31,12 @@ interface ComparePageProps {
 }
 
 export default function ComparePage({ params }: ComparePageProps) {
-  const [productId, setProductId] = useState<string | null>(null)
-  const [product, setProduct] = useState<any>(null)
+  const { currentCompareProduct } = useProductContext();
 
-  useEffect(() => {
-    const getParams = async () => {
-      const resolvedParams = await params
-      setProductId(resolvedParams.id)
-      const foundProduct = getProductById(resolvedParams.id)
-      if (!foundProduct) {
-        notFound()
-      }
-      setProduct(foundProduct)
-    }
-    
-    getParams()
-  }, [params])
-
-  if (!productId || !product) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-              <div className="h-64 bg-gray-200 rounded mb-8"></div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="h-96 bg-gray-200 rounded"></div>
-                <div className="lg:col-span-2 space-y-8">
-                  <div className="h-64 bg-gray-200 rounded"></div>
-                  <div className="h-64 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  if (!currentCompareProduct) {
+    notFound();
   }
+  const product = currentCompareProduct;
 
   const similarityColor =
     product.similarity >= 8 ? "text-green-600" : product.similarity >= 6 ? "text-yellow-600" : "text-red-600"
@@ -78,7 +46,6 @@ export default function ComparePage({ params }: ComparePageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       <Header />
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -88,7 +55,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                 Back to Search
               </Button>
             </Link>
-
             {/* Product Header */}
             <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm mb-8">
               <CardContent className="p-8">
@@ -103,7 +69,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                     />
                     <div className="absolute -top-2 -right-2 h-6 w-6 bg-green-500 rounded-full border-3 border-white dark:border-slate-900"></div>
                   </div>
-
                   <div className="flex-1 space-y-4">
                     <div>
                       <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 dark:from-slate-100 dark:via-indigo-100 dark:to-slate-100 bg-clip-text text-transparent mb-2">
@@ -113,15 +78,18 @@ export default function ComparePage({ params }: ComparePageProps) {
                         {product.description}
                       </p>
                     </div>
-
                     <div className="flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="font-medium">4.{Math.floor(Math.random() * 9) + 1}</span>
-                      </div>
+                      {product.stars && (
+                        <div className="flex items-center gap-2">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          <span className="font-medium">{product.stars.toLocaleString()} stars</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-indigo-500" />
-                        <span className="font-medium">{Math.floor(Math.random() * 50) + 10}k users</span>
+                        <span className="font-medium">
+                          {typeof product.contributors === 'number' ? `${product.contributors.toLocaleString()} contributors` : 'N/A'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-slate-500" />
@@ -132,12 +100,25 @@ export default function ComparePage({ params }: ComparePageProps) {
                         <span className="font-medium">Growing</span>
                       </div>
                     </div>
+                    {/* Topics */}
+                    {product.topics && product.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {product.topics.map((topic: string) => (
+                          <Badge
+                            key={topic}
+                            variant="outline"
+                            className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          >
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Similarity Score Card */}
             <Card className="border-0 shadow-xl bg-white dark:bg-slate-900">
@@ -161,7 +142,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400">Match with your product concept</p>
                 </div>
-
                 <div className="space-y-3 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <Button
                     onClick={() => window.open(product.github, "_blank")}
@@ -171,7 +151,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                     View on GitHub
                     <ExternalLink className="h-4 w-4 ml-2" />
                   </Button>
-
                   <Button variant="outline" className="w-full">
                     <Zap className="h-4 w-4 mr-2" />
                     Add to Watchlist
@@ -179,7 +158,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                 </div>
               </CardContent>
             </Card>
-
             {/* Features Analysis */}
             <div className="lg:col-span-2 space-y-8">
               {/* Overlapping Features */}
@@ -214,7 +192,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                   )}
                 </CardContent>
               </Card>
-
               {/* Missing Features */}
               <Card className="border-0 shadow-xl bg-white dark:bg-slate-900">
                 <CardHeader>
@@ -249,7 +226,6 @@ export default function ComparePage({ params }: ComparePageProps) {
                   )}
                 </CardContent>
               </Card>
-
               {/* Analysis Summary */}
               <Card className="border-0 shadow-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50">
                 <CardHeader>
@@ -281,6 +257,58 @@ export default function ComparePage({ params }: ComparePageProps) {
                   </div>
                 </CardContent>
               </Card>
+              {/* Code Matches */}
+              {product.code_matches && product.code_matches.length > 0 && (
+                <Card className="border-0 shadow-xl bg-white dark:bg-slate-900">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-blue-600">
+                      <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                        <Code className="h-4 w-4 text-blue-600" />
+                      </div>
+                      Code Matches
+                      <Badge variant="secondary" className="ml-auto">
+                        {product.code_matches.length}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription>Files that contain code related to your features</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {product.code_matches.map((match: any, index: number) => (
+                        <div
+                          key={index}
+                          className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-blue-500" />
+                              <span className="font-medium text-slate-900 dark:text-slate-100">
+                                {match.file_name}
+                              </span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(match.file_url, "_blank")}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                          {match.snippet && (
+                            <div className="bg-slate-100 dark:bg-slate-700 rounded p-3 text-sm font-mono text-slate-700 dark:text-slate-300 max-h-32 overflow-y-auto">
+                              {match.snippet.length > 200 
+                                ? `${match.snippet.substring(0, 200)}...` 
+                                : match.snippet
+                              }
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>

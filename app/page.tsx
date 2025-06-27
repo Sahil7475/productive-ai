@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,42 +20,123 @@ import {
   Star,
   Users,
   Calendar,
+  ArrowLeft,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { searchProducts, type Product } from "@/lib/data"
+import { type Product, transformGitHubToProduct, type GitHubRepository } from "@/lib/data"
 import { Header } from "@/components/header"
+import { useProductContext } from '@/components/context/ProductContext'
+import { ProductList } from '@/components/product/ProductList'
 
 export default function HomePage() {
-  const [productName, setProductName] = useState("")
-  const [description, setDescription] = useState("")
-  const [features, setFeatures] = useState<string[]>([])
+  const {
+    products,
+    setProducts,
+    currentCompareProduct,
+    setCurrentCompareProduct,
+    userFeatures,
+    setUserFeatures,
+    lastProductName,
+    setLastProductName,
+    lastDescription,
+    setLastDescription,
+  } = useProductContext();
+
+  const router = useRouter();
+  const [productName, setProductName] = useState(lastProductName);
+  const [description, setDescription] = useState(lastDescription);
   const [currentFeature, setCurrentFeature] = useState("")
-  const [results, setResults] = useState<Product[]>([])
   const [isSearched, setIsSearched] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(12)
+
+  const totalPages = Math.ceil(products.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentResults = products.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentCompareProduct(null)
+    if (products.length > 0) setIsSearched(true)
+  }, [])
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1)
+    }
+  }
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1)
+    }
+  }
 
   const addFeature = () => {
-    if (currentFeature.trim() && !features.includes(currentFeature.trim())) {
-      setFeatures([...features, currentFeature.trim()])
-      setCurrentFeature("")
+    if (currentFeature.trim() && !userFeatures.includes(currentFeature.trim())) {
+      setUserFeatures([...userFeatures, currentFeature.trim()]);
+      setCurrentFeature("");
     }
   }
 
   const removeFeature = (featureToRemove: string) => {
-    setFeatures(features.filter((feature) => feature !== featureToRemove))
+    setUserFeatures(userFeatures.filter((feature) => feature !== featureToRemove));
   }
+
+  const handleProductNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProductName(e.target.value);
+    setLastProductName(e.target.value);
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
+    setLastDescription(e.target.value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (productName.trim() && features.length > 0) {
+    if (productName.trim() && userFeatures.length > 0) {
       setIsLoading(true)
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      const searchResults = searchProducts(features)
-      setResults(searchResults)
-      setIsSearched(true)
-      setIsLoading(false)
+      setLastProductName(productName)
+      setLastDescription(description)
+      try {
+        const response = await fetch("/api/github-search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            description,
+            features: userFeatures,
+          }),
+        })
+        const data = await response.json()
+        if (data.repositories && Array.isArray(data.repositories)) {
+          const transformedProducts = data.repositories
+            .map((repo: GitHubRepository) => transformGitHubToProduct(repo, userFeatures))
+            .sort((a: Product, b: Product) => b.similarity - a.similarity)
+          setProducts(transformedProducts)
+          setUserFeatures(userFeatures)
+          setIsSearched(true)
+          setCurrentPage(1)
+        } else {
+          setProducts([])
+          setIsSearched(false)
+        }
+      } catch (error) {
+        setProducts([])
+        setIsSearched(false)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -113,7 +194,7 @@ export default function HomePage() {
                         id="productName"
                         placeholder="e.g., TimeTrackPro"
                         value={productName}
-                        onChange={(e) => setProductName(e.target.value)}
+                        onChange={handleProductNameChange}
                         className="h-12 text-base"
                         required
                       />
@@ -127,7 +208,7 @@ export default function HomePage() {
                         id="description"
                         placeholder="Brief description of your product and its main purpose..."
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={handleDescriptionChange}
                         rows={4}
                         className="text-base resize-none"
                       />
@@ -159,11 +240,11 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    {features.length > 0 && (
+                    {userFeatures.length > 0 && (
                       <div className="space-y-3">
-                        <Label className="text-base font-medium">Features ({features.length})</Label>
+                        <Label className="text-base font-medium">Features ({userFeatures.length})</Label>
                         <div className="flex flex-wrap gap-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700">
-                          {features.map((feature) => (
+                          {userFeatures.map((feature) => (
                             <Badge
                               key={feature}
                               className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-100 text-indigo-800 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-200 dark:hover:bg-indigo-900/70"
@@ -187,7 +268,7 @@ export default function HomePage() {
                 <Button
                   type="submit"
                   className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
-                  disabled={!productName.trim() || features.length === 0 || isLoading}
+                  disabled={!productName.trim() || userFeatures.length === 0 || isLoading}
                 >
                   {isLoading ? (
                     <>
@@ -207,92 +288,30 @@ export default function HomePage() {
           </Card>
 
           {/* Results Section */}
-          {isSearched && (
+          {isSearched && products.length === 0 && (
+            <div className="text-center text-lg text-slate-500 dark:text-slate-400 py-12">
+              No similar products found. Try different features or keywords.
+            </div>
+          )}
+          {isSearched && products.length > 0 && (
             <div className="space-y-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Similar Products Found</h2>
                 <p className="text-slate-600 dark:text-slate-400">
-                  {results.length} products similar to "{productName}" based on feature analysis
+                  {products.length} products similar to "{productName}" based on feature analysis
                 </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.map((product, index) => (
-                  <Card
-                    key={product.id}
-                    className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white dark:bg-slate-900 hover:-translate-y-1 overflow-hidden"
-                  >
-                    <CardContent className="p-0">
-                      <div className="p-6 space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Image
-                                src={product.logo || "/placeholder.svg"}
-                                alt={`${product.name} logo`}
-                                width={48}
-                                height={48}
-                                className="rounded-xl shadow-md"
-                              />
-                              <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></div>
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                {product.name}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0">
-                                  {product.similarity.toFixed(1)}/10 match
-                                </Badge>
-                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                  <TrendingUp className="h-3 w-3" />#{index + 1}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-2">
-                          {product.description}
-                        </p>
-
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="flex items-center gap-4 text-xs text-slate-500">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3" />
-                              4.{Math.floor(Math.random() * 9) + 1}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {Math.floor(Math.random() * 50) + 10}k
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              2024
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 pt-2">
-                          <Link href={`/compare/${product.id}`} className="flex-1">
-                            <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0">
-                              Compare
-                            </Button>
-                          </Link>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => window.open(product.github, "_blank")}
-                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <ProductList
+                products={products}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                goToPage={goToPage}
+                nextPage={nextPage}
+                prevPage={prevPage}
+                totalPages={totalPages}
+                startIndex={startIndex}
+                endIndex={endIndex}
+              />
             </div>
           )}
         </div>
