@@ -19,8 +19,9 @@ export function ProductStats({ product }: { product: Product }) {
       </div>
       <div className="flex items-center gap-1">
         <Calendar className="h-3 w-3" />
-        2024
+        {product.growth ? `Growth: ${product.growth.growth_score}/10` : '2024'}
       </div>
+      
     </div>
   );
 } 

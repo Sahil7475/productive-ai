@@ -52,6 +52,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(12)
+  const [growthStats, setGrowthStats] = useState<Record<string, any>>({});
 
   const totalPages = Math.ceil(products.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -62,6 +63,38 @@ export default function HomePage() {
     setCurrentCompareProduct(null)
     if (products.length > 0) setIsSearched(true)
   }, [])
+
+  // Fetch growth stats for current page when products or currentPage changes
+  useEffect(() => {
+    if (products.length === 0) return;
+    const pageProducts = products.slice(startIndex, endIndex);
+    const repos = pageProducts.map((p) => ({ owner: p.owner, repo_name: p.name }));
+    fetch("/api/github-search/growth-stats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ repos }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.results) {
+          setGrowthStats((prev) => {
+            const newStats = { ...prev };
+            data.results.forEach((r: any) => {
+              newStats[`${r.owner}/${r.repo_name}`] = r.growth;
+            });
+            return newStats;
+          });
+        }
+      });
+  }, [products, currentPage, startIndex, endIndex]);
+
+  // Merge growth stats into products for display
+  const productsWithGrowth = products.map((p) => {
+    const key = `${p.owner}/${p.name}`;
+    return growthStats[key] ? { ...p, growth: growthStats[key] } : p;
+  });
+
+  const currentResultsWithGrowth = productsWithGrowth.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
     setCurrentPage(page)
@@ -101,7 +134,7 @@ export default function HomePage() {
     setLastDescription(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /* const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (productName.trim() && userFeatures.length > 0) {
       setIsLoading(true)
@@ -138,7 +171,70 @@ export default function HomePage() {
         setIsLoading(false)
       }
     }
-  }
+  } */
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (productName.trim() && userFeatures.length > 0) {
+        setIsLoading(true);
+        setLastProductName(productName);
+        setLastDescription(description);
+        try {
+          // 1️⃣ Call GitHub API first
+          const githubResponse = await fetch("/api/github-search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              features: userFeatures,
+            }),
+          });
+          const githubData = await githubResponse.json();
+    
+          console.log("githubData: API RESPONSE :- " + JSON.stringify(githubData));
+
+
+          // 2️⃣ If you got repos, call OpenAI scoring API
+          if (githubData.repositories && Array.isArray(githubData.repositories) && githubData.repositories.length > 0) {
+            const openAIResponse = await fetch("/api/cohere-score", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userInput: {
+                  description: description,
+                  features: userFeatures,
+                },
+                repositories: githubData.repositories,
+              }),
+            });
+    
+            const scoredData = await openAIResponse.json();
+    
+            console.log("scoredData: API RESPONSE :- " + JSON.stringify(scoredData)); 
+
+            // 3️⃣ Transform with your helper — use ai_similarity, not random!
+            const transformedProducts = scoredData.results
+              .map((repo: GitHubRepository) => transformGitHubToProduct(repo, userFeatures, repo.ai_similarity))
+              .sort((a: Product, b: Product) => b.similarity - a.similarity);
+    
+            setProducts(transformedProducts);
+            setUserFeatures(userFeatures);
+            setIsSearched(true);
+            setCurrentPage(1);
+          } else {
+            setProducts([]);
+            setIsSearched(false);
+          }
+        } catch (error) {
+          console.error(error);
+          setProducts([]);
+          setIsSearched(false);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -302,7 +398,7 @@ export default function HomePage() {
                 </p>
               </div>
               <ProductList
-                products={products}
+                products={productsWithGrowth}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 goToPage={goToPage}
