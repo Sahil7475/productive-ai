@@ -24,12 +24,24 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
-            <Github className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden sm:inline-flex"
+            asChild
+          >
+            <a
+              href="https://github.com/extinctsion/productiveai"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+            >
+              <Github className="h-4 w-4" />
+            </a>
           </Button>
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+          {/* <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
             <Twitter className="h-4 w-4" />
-          </Button>
+          </Button> */}
           <ThemeToggle />
         </div>
       </div>
