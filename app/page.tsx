@@ -186,6 +186,7 @@ export default function HomePage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               features: userFeatures,
+              description: description
             }),
           });
           const githubData = await githubResponse.json();
