@@ -1,6 +1,6 @@
 "use client"
 
-import { ThemeToggle } from "./theme-toggle"
+import { ThemeToggle } from "../theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Zap, Github, Twitter } from "lucide-react"
