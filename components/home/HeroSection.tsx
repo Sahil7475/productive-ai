@@ -17,7 +17,7 @@ export default function HeroSection() {
           Discover Similar Products
         </h1>
         <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          Find competing products, analyze feature overlap, and get insights to build better products
+          Find competing products, analyze feature overlap, and get insights to build better products in open source.
         </p>
       </div>
     </div>

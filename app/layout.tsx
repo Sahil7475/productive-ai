@@ -20,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html className={inter.className} lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      </head>
       <body suppressHydrationWarning>
         <ProductProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
