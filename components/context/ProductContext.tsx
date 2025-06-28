@@ -13,6 +13,8 @@ interface ProductContextType {
   setLastProductName: (name: string) => void;
   lastDescription: string;
   setLastDescription: (desc: string) => void;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -23,9 +25,23 @@ export const ProductProvider = ({ children }: { children: React.ReactNode }) => 
   const [userFeatures, setUserFeatures] = useState<string[]>([]);
   const [lastProductName, setLastProductName] = useState<string>("");
   const [lastDescription, setLastDescription] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   return (
-    <ProductContext.Provider value={{ products, setProducts, currentCompareProduct, setCurrentCompareProduct, userFeatures, setUserFeatures, lastProductName, setLastProductName, lastDescription, setLastDescription }}>
+    <ProductContext.Provider value={{ 
+      products, 
+      setProducts, 
+      currentCompareProduct, 
+      setCurrentCompareProduct, 
+      userFeatures, 
+      setUserFeatures, 
+      lastProductName, 
+      setLastProductName, 
+      lastDescription, 
+      setLastDescription,
+      currentPage,
+      setCurrentPage
+    }}>
       {children}
     </ProductContext.Provider>
   );
