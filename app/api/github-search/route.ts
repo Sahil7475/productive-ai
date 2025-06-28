@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { fetchGrowthStats } from "@/lib/utils"
 
 const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 const GITHUB_REST_SEARCH_URL = "https://api.github.com/search/code"
@@ -19,6 +20,8 @@ async function fetchGraphQLRepos(keywords: string[]): Promise<any[]> {
             stargazerCount
             forkCount
             owner { login }
+            createdAt
+            pushedAt
             repositoryTopics(first: 10) {
               nodes { topic { name } }
             }
@@ -152,6 +155,8 @@ function mergeResults(repos: any[], codeMatches: any[]): any[] {
         stars: repo.stargazerCount,
         topics: repo.repositoryTopics.nodes.map((n: any) => n.topic.name),
         readme_content: repo.object?.text || "",
+        createdAt: repo.createdAt,
+        pushed_at: repo.pushedAt,
         code_matches: [],
       }
     }
@@ -178,6 +183,8 @@ function mergeResults(repos: any[], codeMatches: any[]): any[] {
           stars: match.repository.stargazerCount || null,
           topics: match.repository.topics || [],
           readme_content: match.repository.readme_content || "",
+          createdAt: match.repository.createdAt || null,
+          pushed_at: match.repository.pushedAt || null,
           code_matches: [codeItem],
         }
       }
@@ -211,7 +218,8 @@ async function fetchContributorsCount(owner: string, repo: string): Promise<numb
 
 export async function POST(req: NextRequest) {
   const { productName, description, features } = await req.json()
-  const keywords = [productName, ...(features || [])]
+  // Only use features as keywords, not productName
+  const keywords = features || [];
 
   console.log("Keywords:", keywords);
 

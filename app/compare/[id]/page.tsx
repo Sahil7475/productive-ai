@@ -92,13 +92,17 @@ export default function ComparePage({ params }: ComparePageProps) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-slate-500" />
-                        <span className="font-medium">2024</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        <span className="font-medium">Growing</span>
-                      </div>
+  <Calendar className="h-4 w-4 text-slate-500" />
+  <span className="font-medium">
+    {product.createdAt ? new Date(product.createdAt).getFullYear() : "N/A"}
+  </span>
+</div>
+<div className="flex items-center gap-2">
+  <TrendingUp className="h-4 w-4 text-green-500" />
+  <span className="font-medium">
+    {product.growth && product.growth.growth_score > 5 ? "Growing" : "Stable"}
+  </span>
+</div>
                     </div>
                     {/* Topics */}
                     {product.topics && product.topics.length > 0 && (
@@ -120,8 +124,10 @@ export default function ComparePage({ params }: ComparePageProps) {
             </Card>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Similarity Score Card */}
-            <Card className="border-0 shadow-xl bg-white dark:bg-slate-900">
+
+            <div className="lg:row-span-2">
+{/* Similarity Score Card */}
+<Card className="border-0 shadow-xl bg-white dark:bg-slate-900">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <div className="h-8 w-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -142,6 +148,7 @@ export default function ComparePage({ params }: ComparePageProps) {
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400">Match with your product concept</p>
                 </div>
+                
                 <div className="space-y-3 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <Button
                     onClick={() => window.open(product.github, "_blank")}
@@ -158,6 +165,50 @@ export default function ComparePage({ params }: ComparePageProps) {
                 </div>
               </CardContent>
             </Card>
+       {/* Growth Stats Card */}
+  {product.growth && (
+    <Card className="border-0 shadow-xl bg-white dark:bg-slate-900 mt-6">
+      <CardHeader className="pb-2 flex flex-row items-center gap-3">
+        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+          <TrendingUp className="h-6 w-6 text-green-600" />
+        </div>
+        <div>
+          <CardTitle className="text-lg font-bold text-green-700 dark:text-green-300 mb-0">
+            Growth Stats
+          </CardTitle>
+          <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+            Last 30 days activity
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2 pt-2 text-sm text-slate-700 dark:text-slate-300">
+        <div className="flex justify-between">
+          <span>Commits:</span>
+          <b>{product.growth.commits_last_month}</b>
+        </div>
+        <div className="flex justify-between">
+          <span>New Contributors:</span>
+          <b>{product.growth.new_contributors_last_month}</b>
+        </div>
+        <div className="flex justify-between">
+          <span>Closed Issues:</span>
+          <b>{product.growth.issues_closed_last_month}</b>
+        </div>
+        <div className="flex justify-between">
+          <span>Stars Gained:</span>
+          <b>{product.growth.stars_gained_last_month}</b>
+        </div>
+        <div className="flex justify-between border-t pt-2 mt-2">
+          <span>Growth Score:</span>
+          <b className="text-green-700 dark:text-green-300">{product.growth.growth_score}</b>
+        </div>
+      </CardContent>
+    </Card>
+  )}
+
+            </div>
+
+            
             {/* Features Analysis */}
             <div className="lg:col-span-2 space-y-8">
               {/* Overlapping Features */}
