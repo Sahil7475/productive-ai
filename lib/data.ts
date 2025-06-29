@@ -8,7 +8,6 @@ export interface Product {
     overlapping: string[];
     missing: string[];
     extra: string[];
-    apiFeatures: string[];
   };
   github: string;
   stars?: number;
@@ -46,60 +45,25 @@ export interface GitHubRepository {
   createdAt?: string;
 }
 
-// Function to extract features from repository text
-function extractFeaturesFromText(text: string): string[] {
-  const commonFeatures = [
-    'authentication', 'authorization', 'user management', 'dashboard', 'analytics',
-    'reporting', 'notifications', 'email', 'chat', 'messaging', 'calendar',
-    'scheduling', 'time tracking', 'project management', 'task management',
-    'file upload', 'file management', 'search', 'filtering', 'sorting',
-    'pagination', 'export', 'import', 'backup', 'restore', 'sync',
-    'mobile app', 'responsive', 'dark mode', 'light mode', 'themes',
-    'api', 'webhook', 'integration', 'plugin', 'extension', 'customization',
-    'multi-language', 'localization', 'internationalization', 'accessibility',
-    'real-time', 'websocket', 'push notification', 'offline', 'caching',
-    'database', 'sql', 'nosql', 'orm', 'migration', 'seeding',
-    'testing', 'unit test', 'integration test', 'e2e test', 'ci/cd',
-    'deployment', 'docker', 'kubernetes', 'cloud', 'aws', 'azure', 'gcp',
-    'monitoring', 'logging', 'error tracking', 'performance', 'optimization',
-    'security', 'encryption', 'ssl', 'https', 'oauth', 'jwt', '2fa',
-    'payment', 'billing', 'subscription', 'pricing', 'freemium',
-    'social login', 'google', 'facebook', 'twitter', 'github', 'linkedin',
-    'admin panel', 'moderation', 'content management', 'cms',
-    'blog', 'forum', 'comment', 'rating', 'review', 'feedback',
-    'gamification', 'achievement', 'badge', 'leaderboard', 'points',
-    'collaboration', 'team', 'workspace', 'invitation', 'permission',
-    'version control', 'git', 'branch', 'merge', 'pull request',
-    'documentation', 'help', 'support', 'faq', 'tutorial', 'guide'
-  ];
-
-  const textLower = text.toLowerCase();
-  return commonFeatures.filter(feature => textLower.includes(feature));
-}
-
 export function transformGitHubToProduct(
   repo: GitHubRepository,
   userFeatures: string[],
   similarityOverride?: number
 ): Product {
   const repoText = `${repo.repo_description} ${repo.readme_content} ${repo.topics.join(" ")}`.toLowerCase();
+  
   const userFeaturesLower = userFeatures.map(f => f.toLowerCase());
   
-  const apiFeatures = extractFeaturesFromText(`${repo.repo_description} ${repo.readme_content} ${repo.topics.join(" ")}`);
-  
-  const repoFeatures = apiFeatures.map(f => f.toLowerCase());
-
-
+  const repoFeatures = repo.topics.map(f => f.toLowerCase());
 
   // Overlapping: features in both user input and repo
-const overlappingFeatures = userFeaturesLower.filter(feature => repoText.includes(feature));
+  const overlappingFeatures = userFeaturesLower.filter(feature => repoText.includes(feature));
 
-// Extra: features in user input but NOT in repo
-const extraFeatures = userFeaturesLower.filter(feature => !repoText.includes(feature));
+  // Extra: features in user input but NOT in repo
+  const extraFeatures = userFeaturesLower.filter(feature => !repoText.includes(feature));
 
-// Missing: features in repo but NOT in user input
-const missingFeatures = repoFeatures.filter(feature => !userFeaturesLower.includes(feature));
-
+  // Missing: features in repo but NOT in user input
+  const missingFeatures = repoFeatures.filter(feature => !userFeaturesLower.includes(feature));
 
   // ✅ Use AI score if provided, fallback to basic calc
   const similarity = similarityOverride !== undefined
@@ -117,8 +81,7 @@ const missingFeatures = repoFeatures.filter(feature => !userFeaturesLower.includ
     features: {
       overlapping: overlappingFeatures,
       missing: missingFeatures,
-      extra: extraFeatures,
-      apiFeatures: apiFeatures,
+      extra: extraFeatures
     },
     github: repo.repo_url,
     stars: repo.stars,
