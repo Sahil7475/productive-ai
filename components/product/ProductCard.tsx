@@ -24,7 +24,9 @@ export function ProductCard({ product, index, startIndex }: { product: Product, 
               height={48}
               className="rounded-xl shadow-md bg-white"
             />
-            <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></div>
+            <div className={`absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900
+  ${product.archived ? 'bg-yellow-400' : 'bg-green-500'}`}></div>
+          
           </div>
           <div>
             <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -37,7 +39,10 @@ export function ProductCard({ product, index, startIndex }: { product: Product, 
             )}
             <div className="flex items-center gap-2 mt-1">
               <Badge className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0">
-                {product.similarity.toFixed(1)}/10 match
+              {Number.isInteger(product.similarity)
+  ? product.similarity
+  : product.similarity.toFixed(1)}
+/10 match
               </Badge>
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <TrendingUp className="h-3 w-3" />#{startIndex + index + 1}

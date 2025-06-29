@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchGrowthStats } from "@/lib/utils";
+import { fetchGrowthStats } from "../route";
 
 export async function POST(req: NextRequest) {
   const { repos } = await req.json(); // repos: Array<{ owner: string, repo_name: string }>
