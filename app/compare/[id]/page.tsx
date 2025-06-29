@@ -1,15 +1,26 @@
 "use client"
 
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
   ExternalLink,
   Github,
+  CheckCircle,
+  XCircle,
+  Star,
+  Users,
+  Calendar,
+  TrendingUp,
+  Zap,
   Target,
+  Code,
+  FileText,
 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "@/components/layout/Header"
 import { useProductContext } from '@/components/context/ProductContext'
 import CompareHeader from '@/components/compare/CompareHeader'
@@ -32,6 +43,11 @@ export default function ComparePage({ params }: ComparePageProps) {
     notFound();
   }
   const product = currentCompareProduct;
+
+  const similarityColor =
+    product.similarity >= 8 ? "text-green-600" : product.similarity >= 6 ? "text-yellow-600" : "text-red-600"
+  const similarityBg =
+    product.similarity >= 8 ? "bg-green-500" : product.similarity >= 6 ? "bg-yellow-500" : "bg-red-500"
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">

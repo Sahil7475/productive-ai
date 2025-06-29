@@ -24,7 +24,7 @@ async function fetchGraphQLRepos(keywords: string[]): Promise<any[]> {
             createdAt
             pushedAt
             isArchived  
-            repositoryTopics(first: 30) {
+            repositoryTopics(first: 10) {
               nodes { topic { name } }
             }
             defaultBranchRef {
@@ -115,83 +115,9 @@ async function fetchCodeMatches(keywords: string[]): Promise<any[]> {
   return allMatches
 }
 
-async function fetchIndividualRepo(owner: string, name: string): Promise<any> {
-  const query = `
-    query ($owner: String!, $name: String!) {
-      repository(owner: $owner, name: $name) {
-        name
-        description
-        url
-        stargazerCount
-        forkCount
-        owner {
-          login
-        }
-        createdAt
-        pushedAt
-        isArchived
-        repositoryTopics(first: 30) {
-          nodes {
-            topic {
-              name
-            }
-          }
-        }
-        defaultBranchRef {
-          target {
-            ... on Commit {
-              committedDate
-            }
-          }
-        }
-        object(expression: "HEAD:README.md") {
-          ... on Blob {
-            text
-          }
-        }
-      }
-    }
-  `
 
-  const res = await fetch(GITHUB_GRAPHQL_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getGithubToken()}`,
-    },
-    body: JSON.stringify({ 
-      query, 
-      variables: { 
-        owner,
-        name
-      } 
-    }),
-  })
 
-  const data: any = await res.json()
-  
-  if (data.data?.repository) {
-    const repo = data.data.repository
-    return {
-      repo_name: repo.name,
-      owner: repo.owner.login,
-      repo_url: repo.url,
-      repo_description: repo.description,
-      stars: repo.stargazerCount,
-      forks: repo.forkCount,
-      topics: repo.repositoryTopics.nodes.map((n: any) => n.topic.name),
-      readme_content: repo.object?.text || "",
-      createdAt: repo.createdAt,
-      pushed_at: repo.pushedAt,
-      archived: repo.isArchived,
-      code_matches: [],
-    }
-  }
-  
-  return null
-}
-
-async function mergeResults(repos: any[], codeMatches: any[]): Promise<any[]> {
+function mergeResults(repos: any[], codeMatches: any[]): any[] {
     // 1️⃣ Make a map for quick lookup by "owner/name"
     const repoMap: Record<string, any> = {}
   
@@ -204,7 +130,6 @@ async function mergeResults(repos: any[], codeMatches: any[]): Promise<any[]> {
         repo_url: repo.url,
         repo_description: repo.description,
         stars: repo.stargazerCount,
-        forks: repo.forkCount,
         topics: repo.repositoryTopics.nodes.map((n: any) => n.topic.name),
         readme_content: repo.object?.text || "",
         createdAt: repo.createdAt,
@@ -227,49 +152,19 @@ async function mergeResults(repos: any[], codeMatches: any[]): Promise<any[]> {
         // If repo exists → push code match
         repoMap[fullName].code_matches.push(codeItem)
       } else {
-        // If repo NOT in GraphQL → fetch complete data using GraphQL query
-        try {
-          const completeRepoData = await fetchIndividualRepo(match.repository.owner.login, match.repository.name)
-          if (completeRepoData) {
-            // Merge the complete repo data with the code match
-            repoMap[fullName] = {
-              ...completeRepoData,
-              code_matches: [codeItem],
-            }
-          } else {
-            // Fallback to basic data if GraphQL fetch fails
-            repoMap[fullName] = {
-              repo_name: match.repository.name,
-              owner: match.repository.owner.login,
-              repo_url: match.repository.html_url,
-              repo_description: match.repository.description || "",
-              stars: match.repository.stargazerCount || null,
-              forks: match.repository.forkCount || null,
-              topics: match.repository.topics || [],
-              readme_content: "",
-              createdAt: match.repository.createdAt || null,
-              pushed_at: match.repository.pushedAt || null,
-              archived: false,
-              code_matches: [codeItem],
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching repo data for ${fullName}:`, error)
-          // Fallback to basic data
-          repoMap[fullName] = {
-            repo_name: match.repository.name,
-            owner: match.repository.owner.login,
-            repo_url: match.repository.html_url,
-            repo_description: match.repository.description || "",
-            stars: match.repository.stargazerCount || null,
-            forks: match.repository.forkCount || null,
-            topics: match.repository.topics || [],
-            readme_content: "",
-            createdAt: match.repository.createdAt || null,
-            pushed_at: match.repository.pushedAt || null,
-            archived: false,
-            code_matches: [codeItem],
-          }
+        // If repo NOT in GraphQL → create new entry (code-only)
+        repoMap[fullName] = {
+          repo_name: match.repository.name,
+          owner: match.repository.owner.login,
+          repo_url: match.repository.html_url,
+          repo_description: match.repository.description || "",
+          stars: match.repository.stargazerCount || null,
+          topics: match.repository.topics || [],
+          readme_content: match.repository.readme_content || "",
+          createdAt: match.repository.createdAt || null,
+          pushed_at: match.repository.pushedAt || null,
+          archived:false,
+          code_matches: [codeItem],
         }
       }
     }
@@ -351,7 +246,7 @@ export async function POST(req: NextRequest) {
   ])
 
   // Merge results
-  let merged = await mergeResults(repos, codeMatches)
+  let merged = mergeResults(repos, codeMatches)
 
   // Fetch contributors count for each repo (limit to first 20 for performance)
   const withContributors = await Promise.all(
