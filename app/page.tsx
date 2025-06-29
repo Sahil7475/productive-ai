@@ -9,6 +9,7 @@ import { useProductContext } from '@/components/context/ProductContext'
 import HeroSection from '@/components/home/HeroSection'
 import ProductFormCard from '@/components/home/ProductFormCard'
 import SimilarProductsSection from '@/components/home/SimilarProductsSection'
+import Footer from "@/components/layout/Footer"
 
 export default function HomePage() {
   const {
@@ -224,6 +225,9 @@ export default function HomePage() {
           />
         </div>
       </div>
+
+      <Footer />
+
     </div>
   )
 }

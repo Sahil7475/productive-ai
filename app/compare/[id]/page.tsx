@@ -29,6 +29,7 @@ import GrowthStatsCard from '@/components/compare/GrowthStatsCard'
 import FeaturesSection from '@/components/compare/FeaturesSection'
 import CompetitiveSummary from '@/components/compare/CompetitiveSummary'
 import CodeMatchesSection from '@/components/compare/CodeMatchesSection'
+import Footer from "@/components/layout/Footer"
 
 interface ComparePageProps {
   params: Promise<{
@@ -104,6 +105,7 @@ export default function ComparePage({ params }: ComparePageProps) {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }
