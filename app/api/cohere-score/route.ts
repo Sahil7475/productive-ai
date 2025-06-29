@@ -10,10 +10,7 @@ import {
 
 export async function POST(req: NextRequest) {
   const { userInput, repositories } = await req.json();
-  
-  // userInput: { name: string, description: string, features: string[] }
-  // repositories: your GitHub API results
-  
+   
   // 1️⃣ Build project query
   const projectText = buildProjectQuery(userInput.description, userInput.features);
   const queryEmbedding = await getQueryEmbedding(projectText);

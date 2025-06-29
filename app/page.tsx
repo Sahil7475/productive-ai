@@ -2,26 +2,10 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import {
-  Search,
-  Plus,
-  X,
-  Sparkles,
-  Target,
-  ArrowRight,
-} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { type Product, transformGitHubToProduct, type GitHubRepository } from "@/lib/data"
 import { Header } from "@/components/layout/Header"
 import { useProductContext } from '@/components/context/ProductContext'
-import { ProductList } from '@/components/product/ProductList'
-import LogoCircle from '@/components/common/LogoCircle'
 import HeroSection from '@/components/home/HeroSection'
 import ProductFormCard from '@/components/home/ProductFormCard'
 import SimilarProductsSection from '@/components/home/SimilarProductsSection'
@@ -90,8 +74,6 @@ export default function HomePage() {
     return growthStats[key] ? { ...p, growth: growthStats[key] } : p;
   });
 
-  const currentResultsWithGrowth = productsWithGrowth.slice(startIndex, endIndex);
-
   const goToPage = (page: number) => {
     setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -138,7 +120,7 @@ export default function HomePage() {
         setLastProductName(productName);
         setLastDescription(description);
         try {
-          // 1️⃣ Call GitHub API first
+          
           const githubResponse = await fetch("/api/github-search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -147,14 +129,12 @@ export default function HomePage() {
               description: description
             }),
           });
+
+
           const githubData = await githubResponse.json();
     
-          console.log("githubData: API RESPONSE :- " + JSON.stringify(githubData));
-
-
-          // 2️⃣ If you got repos, call OpenAI scoring API
-          if (githubData.repositories && Array.isArray(githubData.repositories) && githubData.repositories.length > 0) {
-            const openAIResponse = await fetch("/api/cohere-score", {
+           if (githubData.repositories && Array.isArray(githubData.repositories) && githubData.repositories.length > 0) {
+            const aiSimilarityScoreResponse = await fetch("/api/cohere-score", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -166,14 +146,20 @@ export default function HomePage() {
               }),
             });
     
-            const scoredData = await openAIResponse.json();
-    
-            console.log("scoredData: API RESPONSE :- " + JSON.stringify(scoredData)); 
-
-            // 3️⃣ Transform with your helper — use ai_similarity, not random!
+            const scoredData = await aiSimilarityScoreResponse.json();
+      
             const transformedProducts = scoredData.results
               .map((repo: GitHubRepository) => transformGitHubToProduct(repo, userFeatures, repo.ai_similarity))
-              .sort((a: Product, b: Product) => b.similarity - a.similarity);
+              .sort((a: Product, b: Product) => {
+                const aFeatureMatches = a.features.overlapping.length;
+                const bFeatureMatches = b.features.overlapping.length;
+                
+                if (aFeatureMatches !== bFeatureMatches) {
+                  return bFeatureMatches - aFeatureMatches;
+                }
+                
+                return b.similarity - a.similarity;
+              });
     
             setProducts(transformedProducts);
             setUserFeatures(userFeatures);
