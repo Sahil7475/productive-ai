@@ -153,7 +153,5 @@ export async function rankRepos(
     });
   }
   results.sort((a, b) => b.score - a.score);
-  // Optionally log top results for debugging
-  // console.log('Top results:', results.slice(0, 5));
   return results;
 }

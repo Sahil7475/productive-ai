@@ -73,8 +73,6 @@ async function fetchGraphQLRepos(keywords: string[]): Promise<any[]> {
     })
     const data: any = await res.json()
 
-    console.log("GraphQL Response:", data);
-    
     if (data.data?.search?.nodes) {
       allRepos = allRepos.concat(data.data.search.nodes)
       hasNextPage = data.data.search.pageInfo.hasNextPage
@@ -102,7 +100,6 @@ async function fetchCodeMatches(keywords: string[]): Promise<any[]> {
       },
     })
     const data = await res.json()
-    console.log(`REST Response Page ${page}:`, data);
     
     if (data.items && data.items.length > 0) {
       allMatches = allMatches.concat(data.items)
@@ -236,8 +233,6 @@ export async function POST(req: NextRequest) {
   const { productName, description, features } = await req.json()
   // Only use features as keywords, not productName
   const keywords = features || [];
-
-  console.log("Keywords:", keywords);
 
   // Fetch from GitHub APIs
   const [repos, codeMatches] = await Promise.all([
