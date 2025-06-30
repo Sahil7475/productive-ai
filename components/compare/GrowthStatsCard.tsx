@@ -35,10 +35,6 @@ export default function GrowthStatsCard({ growth }: { growth: any }) {
           <span>Stars Gained:</span>
           <b>{growth.stars_gained_last_month}</b>
         </div>
-        <div className="flex justify-between border-t pt-2 mt-2">
-          <span>Growth Score:</span>
-          <b className="text-green-700 dark:text-green-300">{growth.growth_score}</b>
-        </div>
       </CardContent>
     </Card>
   );
