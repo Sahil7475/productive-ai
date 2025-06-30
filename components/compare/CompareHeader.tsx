@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Star, Users, Calendar, TrendingUp } from "lucide-react";
+import { Star, Users, Calendar, TrendingUp, GitFork } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function CompareHeader({ product }: { product: any }) {
@@ -25,18 +25,31 @@ export default function CompareHeader({ product }: { product: any }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          {product.stars && (
+          
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">{product.stars.toLocaleString()} stars</span>
+              <span className="font-medium"> {product.stars ? product.stars.toLocaleString() : '0'} stars</span>
             </div>
-          )}
+          
+
+
+
+      <div className="flex items-center gap-2">
+        <GitFork className="h-4 w-4" />
+        {product.forks ? product.forks.toLocaleString() : '0'}
+      </div>
+
+
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-indigo-500" />
             <span className="font-medium">
-              {typeof product.contributors === 'number' ? `${product.contributors.toLocaleString()} contributors` : 'N/A'}
+              {typeof product.contributors === 'number' ? `${product.contributors.toLocaleString()} contributors` : '0'}
             </span>
           </div>
+          
+
+
+
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-slate-500" />
             <span className="font-medium">
