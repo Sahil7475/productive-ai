@@ -12,21 +12,15 @@ export default function Footer() {
       <div>
         <h3 className="font-semibold text-lg mb-3 text-primary">Built With</h3>
         <ul className="space-y-1 text-[15px] text-muted-foreground">
-          <li><a href="https://docs.github.com/en/rest" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">GitHub REST API <ExternalLinkIcon /></a></li>
-          <li><a href="https://docs.github.com/en/graphql" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">GitHub GraphQL API <ExternalLinkIcon /></a></li>
-          <li><a href="https://nextjs.org/" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">Next.js <ExternalLinkIcon /></a></li>
-          <li><a href="https://bolt.new/" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">Bolt AI <ExternalLinkIcon /></a></li>
-          <li><a href="https://cohere.ai/" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">Cohere AI <ExternalLinkIcon /></a></li>
-          <li><a href="https://www.typescriptlang.org/" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">TypeScript <ExternalLinkIcon /></a></li>
-        </ul>
+         <li><a href="https://bolt.new/" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors">Bolt.New<ExternalLinkIcon /></a></li>
+       </ul>
       </div>
   
       {/* Connect */}
       <div>
         <h3 className="font-semibold text-lg mb-3 text-primary">Connect</h3>
         <ul className="space-y-1 text-[15px] text-muted-foreground">
-          <li><a href="#" className="inline-flex items-center gap-1 hover:text-primary transition-colors"><Twitter className="h-4 w-4" /> Twitter <ExternalLinkIcon /></a></li>
-          <li><a href="mailto:info@example.com" className="inline-flex items-center gap-1 hover:text-primary transition-colors"><Mail className="h-4 w-4" /> Email <ExternalLinkIcon /></a></li>
+          <li><a href="mailto:info.productiveai@gmail.com" className="inline-flex items-center gap-1 hover:text-primary transition-colors"><Mail className="h-4 w-4" /> Email <ExternalLinkIcon /></a></li>
           <li><a href="https://github.com/extinctsion/productiveai" target="_blank" className="inline-flex items-center gap-1 hover:text-primary transition-colors"><Github className="h-4 w-4" /> GitHub <ExternalLinkIcon /></a></li>
         </ul>
       </div>
