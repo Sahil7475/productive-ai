@@ -19,7 +19,11 @@ export default function LogoCircle() {
   const logoSrc = currentTheme === "dark" ? LOGO_DARK : LOGO_LIGHT;
 
   return (
-    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-lg">
+    <div
+      className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-lg cursor-pointer"
+      onClick={() => window.open("https://bolt.new/", "_blank")}
+      title="Visit Bolt"
+    >
       <Image
         src={logoSrc}
         alt="Logo"
