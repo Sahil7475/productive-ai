@@ -17,10 +17,6 @@ export function ProductStats({ product }: { product: Product }) {
           ? `${product.contributors.toLocaleString()} contributors`
           : (product.forks ? `${product.forks.toLocaleString()} forks` : 'N/A')}
       </div>
-      <div className="flex items-center gap-1">
-        <Calendar className="h-3 w-3" />
-        {product.growth ? `Growth: ${product.growth.growth_score}/10` : '2024'}
-      </div>
       
     </div>
   );
